@@ -7,13 +7,16 @@ namespace Assets.Fabrik
     public sealed class WarehouseWalker : MonoBehaviour
     {
         [SerializeField, Min(0.1f)] private float speed = 3f;
-        [SerializeField, Min(30f)] private float turnSpeed = 180f;
+        [SerializeField, Min(30f)] private float turnSpeed = 540f;
+        [SerializeField, Min(0f)] private float pushForce = 35f;
 
         private CharacterController controller;
+        private Camera viewCamera;
 
         private void Awake()
         {
             controller = GetComponent<CharacterController>();
+            viewCamera = Camera.main;
         }
 
         private void Update()
@@ -24,16 +27,37 @@ namespace Assets.Fabrik
                 return;
             }
 
-            float turn = 0f;
-            if (keyboard.leftArrowKey.isPressed || keyboard.aKey.isPressed) turn -= 1f;
-            if (keyboard.rightArrowKey.isPressed || keyboard.dKey.isPressed) turn += 1f;
+            float horizontal = (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed ? 1f : 0f)
+                - (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed ? 1f : 0f);
+            float vertical = (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed ? 1f : 0f)
+                - (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed ? 1f : 0f);
 
-            float move = 0f;
-            if (keyboard.upArrowKey.isPressed || keyboard.wKey.isPressed) move += 1f;
-            if (keyboard.downArrowKey.isPressed || keyboard.sKey.isPressed) move -= 1f;
+            Transform cameraTransform = viewCamera != null ? viewCamera.transform : transform;
+            Vector3 forward = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;
+            Vector3 right = Vector3.ProjectOnPlane(cameraTransform.right, Vector3.up).normalized;
+            Vector3 movement = Vector3.ClampMagnitude(forward * vertical + right * horizontal, 1f);
+            controller.SimpleMove(movement * speed);
 
-            transform.Rotate(Vector3.up, turn * turnSpeed * Time.deltaTime);
-            controller.SimpleMove(transform.forward * (move * speed));
+            if (forward.sqrMagnitude > 0f)
+            {
+                Quaternion facing = Quaternion.LookRotation(forward, Vector3.up);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, facing, turnSpeed * Time.deltaTime);
+            }
+        }
+
+        private void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            Rigidbody body = hit.rigidbody;
+            if (body == null || body.isKinematic)
+            {
+                return;
+            }
+
+            Vector3 pushDirection = Vector3.ProjectOnPlane(hit.moveDirection, Vector3.up);
+            if (pushDirection.sqrMagnitude > 0f)
+            {
+                body.AddForceAtPosition(pushDirection.normalized * pushForce, hit.point, ForceMode.Impulse);
+            }
         }
     }
 }
