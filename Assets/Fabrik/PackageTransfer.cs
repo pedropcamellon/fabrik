@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Fabrik
+namespace Assets.Fabrik
 {
     public sealed class PackageTransfer : MonoBehaviour
     {

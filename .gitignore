@@ -11,3 +11,9 @@
 /*.csproj
 /*.sln
 /*.slnx
+
+# Imported Asset Store content and its generated scene stay local.
+/Assets/WarehousePack/
+/Assets/WarehousePack.meta
+/Assets/Scenes/Fabrik.unity
+/Assets/Scenes/Fabrik.unity.meta

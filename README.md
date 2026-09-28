@@ -1,26 +1,29 @@
 # Fabrik
 
-A tiny Unity first-impression probe: place one package in a supplied warehouse and watch it move between two points. No custom factory or industrial integrations.
+Fabrik is an experimental factory digital-twin sandbox in Unity. It starts with a visual warehouse representation and a controllable worker proxy, then leaves room for packages, routes, sensors, and machine state. It is not yet connected to a physical facility, PLC, SCADA system, or live telemetry, so it should not be treated as an operational digital twin.
 
-## Open
+## Project setup
 
-Open the **repository root** in Unity Hub with Unity Editor **6000.6.3f1** (Apple Silicon). `Assets/`, `Packages/`, and `ProjectSettings/` are the Unity project; `Library/`, `Logs/`, and `Temp/` are generated and ignored by Git.
+Open the repository root in Unity Hub with Unity Editor **6000.6.3f1** (Apple Silicon). Fabrik uses Universal Render Pipeline (URP).
 
-If Unity warns that `Assets/Scenes/SampleScene.unity` contains an old Light serialization version, double-click that scene in the Project panel and press **Cmd+S**. Do not edit the scene file as text.
+The warehouse environment comes from the free [Warehouse Pack](https://assetstore.unity.com/packages/3d/environments/warehouse-pack-free-low-poly-warehouse-essentials-407032). In **Window > Package Manager > My Assets**, select Warehouse Pack, then choose **Download** and **Import**. Asset Store source files and the generated Fabrik scene stay local because this repository is public.
 
-## One warehouse, one package
+After importing, choose **Tools > Fabrik > Create Scene from Warehouse Sample**. This copies the polished sample to `Assets/Scenes/Fabrik.unity`, adds an orange capsule walker, connects the sample's Hero Camera, and registers the scene for builds. Press **Play** and use:
 
-1. Add the free [Old Warehouse](https://assetstore.unity.com/packages/3d/props/industrial/old-warehouse-116767) to your Unity Asset Store account. In Unity, open **Window > Package Manager > My Assets**, download it, and import its package. It is an older built-in-render-pipeline asset; visual quality in Unity 6 has **not** been verified.
-2. Open `Assets/Scenes/SampleScene.unity` and drag the imported warehouse prefab into the scene. Select a floor object or the warehouse near an unobstructed two-meter stretch.
-3. Choose **Tools > Fabrik > Add Package Transfer**. Select the new `Fabrik Transfer` object and adjust its position if the blue package starts inside geometry. Press **Play**: the cube travels two meters in three seconds, then returns in three seconds, repeating.
-4. Save the scene as `Assets/Scenes/Fabrik.unity` with **File > Save As**. Reopen it and press Play again to verify the setup survived saving.
+- `W` / `S` or Up / Down: walk forward and backward.
+- `A` / `D` or Left / Right: turn.
+- Play button again: stop the simulation and return to editing.
 
-The package is animated, not physically conveyed. The Asset Store content requires a Unity account and is not bundled in this repository; check its license before redistributing it. No one has observed the imported warehouse or the package motion yet.
+## Unity scenes and objects
 
-## First impression
+A Unity **scene** is a saved simulation space: its GameObjects, components, lights, cameras, and references to reusable assets. `Fabrik.unity` is the active warehouse scene. The imported vendor sample remains unchanged and can be used to recreate Fabrik.
 
-| Question | Observation |
-| --- | --- |
-| Setup friction | Pending hands-on run |
-| Visual satisfaction | Pending hands-on run |
-| Deserves another session? | Pending hands-on run |
+The **Hierarchy** window lists every GameObject in the open scene. To navigate:
+
+1. Click an object in Hierarchy to select it.
+2. Move the pointer over the Scene view and press `F` to frame the selected object.
+3. Double-click a Hierarchy object to select and frame it together.
+4. Hold the right mouse button and use `WASD` to fly through the Scene view; use the scroll wheel to change speed.
+5. Use the Move (`W`), Rotate (`E`), and Scale (`R`) tools to adjust selected objects.
+
+The imported pack provides pallet racks, boltless shelves, totes, pallets, boxes, a pallet jack, packing table, dock door, floor markings, high-bay light, materials, and a complete pick-pack-ship sample scene.

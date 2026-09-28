@@ -3,10 +3,91 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Fabrik.Editor
+namespace Assets.Fabrik.Editor
 {
     public static class PrepareWarehouse
     {
+        private const string SampleScenePath = "Assets/WarehousePack/Samples/URP/URPScene.unity";
+        private const string FabrikScenePath = "Assets/Scenes/Fabrik.unity";
+
+        [MenuItem("Tools/Fabrik/Create Scene from Warehouse Sample")]
+        public static void CreateSceneFromSample()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(SampleScenePath) == null)
+            {
+                EditorUtility.DisplayDialog("Fabrik", "Download and import Warehouse Pack from Package Manager > My Assets first.", "OK");
+                return;
+            }
+
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(FabrikScenePath) == null &&
+                !AssetDatabase.CopyAsset(SampleScenePath, FabrikScenePath))
+            {
+                EditorUtility.DisplayDialog("Fabrik", "Unity could not copy the warehouse sample scene.", "OK");
+                return;
+            }
+
+            EditorSceneManager.OpenScene(FabrikScenePath, OpenSceneMode.Single);
+            AddWarehouseWalker();
+            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(FabrikScenePath, true) };
+        }
+
+        [MenuItem("Tools/Fabrik/Add Warehouse Walker")]
+        public static void AddWarehouseWalker()
+        {
+            GameObject existing = GameObject.Find("Warehouse Walker");
+            if (existing != null)
+            {
+                Selection.activeGameObject = existing;
+                return;
+            }
+
+            GameObject floor = GameObject.Find("Rooms/Storage aisle/Floor");
+            if (floor == null || !floor.TryGetComponent(out Renderer floorRenderer))
+            {
+                EditorUtility.DisplayDialog("Fabrik", "Open Assets/Scenes/Fabrik.unity first.", "OK");
+                return;
+            }
+
+            GameObject avatar = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            avatar.name = "Warehouse Walker";
+            avatar.transform.position = new Vector3(
+                floorRenderer.bounds.center.x,
+                floorRenderer.bounds.max.y + 1f,
+                floorRenderer.bounds.center.z);
+            Undo.RegisterCreatedObjectUndo(avatar, "Add warehouse walker");
+            Undo.DestroyObjectImmediate(avatar.GetComponent<CapsuleCollider>());
+            CharacterController controller = avatar.AddComponent<CharacterController>();
+            controller.height = 2f;
+            controller.radius = 0.4f;
+            avatar.AddComponent<WarehouseWalker>();
+
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/WarehousePack/Materials/URP/Mat_Safety_Orange.mat");
+            avatar.GetComponent<Renderer>().sharedMaterial = material;
+
+            GameObject cameraObject = GameObject.Find("Hero Camera");
+            if (cameraObject != null)
+            {
+                foreach (Animator animator in cameraObject.GetComponents<Animator>())
+                {
+                    animator.enabled = false;
+                }
+
+                cameraObject.tag = "MainCamera";
+                WarehouseCamera follow = cameraObject.GetComponent<WarehouseCamera>();
+                if (follow == null)
+                {
+                    follow = cameraObject.AddComponent<WarehouseCamera>();
+                }
+                follow.SetTarget(avatar.transform);
+            }
+
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+            EditorSceneManager.SaveOpenScenes();
+            Selection.activeGameObject = avatar;
+            SceneView.lastActiveSceneView?.FrameSelected();
+        }
+
         [MenuItem("Tools/Fabrik/Add Package Transfer")]
         private static void AddPackageTransfer()
         {
@@ -46,7 +127,7 @@ namespace Fabrik.Editor
             Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Fabrik/Fabrik Blue.mat");
             if (material == null)
             {
-                Shader shader = Shader.Find("HDRP/Lit") ?? Shader.Find("Standard");
+                Shader shader = Shader.Find("Universal Render Pipeline/Lit");
                 material = new Material(shader);
                 material.color = new Color(0.08f, 0.35f, 0.95f);
                 AssetDatabase.CreateAsset(material, "Assets/Fabrik/Fabrik Blue.mat");
